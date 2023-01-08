@@ -118,7 +118,8 @@ The following merge options are supported:
   default message), `pull-request-title` (use the pull request's title),
   `pull-request-description` (use the pull request's description),
   `pull-request-title-and-description` or a literal
-  value with optional placeholders (for example `Auto merge {pullRequest.number}`).
+  value with optional placeholders (for example `Auto merge {pullRequest.number}`). The special
+  placeholder `{commits}` evaluates to a list of the pull request's commits.
   The default value is `automatic`.
 
 - `MERGE_COMMIT_MESSAGE_REGEX`: When using a commit message containing the

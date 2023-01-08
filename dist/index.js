@@ -995,7 +995,7 @@ const {
 
 const NOT_READY = ["dirty", "draft"];
 
-const PR_PROPERTY = new RegExp("{pullRequest.([^}]+)}", "g");
+const PR_PROPERTY = new RegExp("{(?:commits|pullRequest.([^}]+))}", "g");
 
 async function merge(context, pullRequest, approvalCount) {
   if (skipPullRequest(context, pullRequest, approvalCount)) {
@@ -1049,7 +1049,11 @@ async function merge(context, pullRequest, approvalCount) {
     return RESULT_AUTHOR_FILTERED;
   }
 
-  const commitMessage = getCommitMessage(mergeCommitMessage, pullRequest);
+  const commitMessage = await getCommitMessage(
+    mergeCommitMessage,
+    pullRequest,
+    octokit
+  );
   const mergeMethod = getMergeMethod(
     defaultMergeMethod,
     mergeMethodLabels,
@@ -1357,7 +1361,7 @@ function getMergeMethod(defaultMergeMethod, mergeMethodLabels, pullRequest) {
   return defaultMergeMethod;
 }
 
-function getCommitMessage(mergeCommitMessage, pullRequest) {
+async function getCommitMessage(mergeCommitMessage, pullRequest, octokit) {
   if (mergeCommitMessage === "automatic") {
     return undefined;
   } else if (mergeCommitMessage === "pull-request-title") {
@@ -1369,10 +1373,39 @@ function getCommitMessage(mergeCommitMessage, pullRequest) {
       pullRequest.title + (pullRequest.body ? "\n\n" + pullRequest.body : "")
     );
   } else {
-    return mergeCommitMessage.replace(PR_PROPERTY, (_, prProp) =>
-      resolvePath(pullRequest, prProp)
-    );
+    let commitList;
+    if (mergeCommitMessage.includes("{commits}")) {
+      const commits = await getPullRequestCommits(octokit, pullRequest);
+      commitList = formatCommitList(commits);
+    }
+
+    return mergeCommitMessage.replace(PR_PROPERTY, (match, prProp) => {
+      if (match === "{commits}") {
+        return commitList;
+      } else {
+        return resolvePath(pullRequest, prProp);
+      }
+    });
   }
+}
+
+function formatCommitList(commits) {
+  return commits
+    .map(commit => {
+      const lines = commit.commit.message.split("\n");
+      lines[0] = `* ${lines[0]} (${commit.sha.substring(0, 7)})`;
+      return lines.join("\n  ");
+    })
+    .join("\n");
+}
+
+async function getPullRequestCommits(octokit, pullRequest) {
+  const { data: commits } = await octokit.pulls.listCommits({
+    owner: pullRequest.base.repo.owner.login,
+    repo: pullRequest.base.repo.name,
+    pull_number: pullRequest.number
+  });
+  return commits;
 }
 
 async function mergePullRequest(

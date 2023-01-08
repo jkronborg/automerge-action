@@ -39,6 +39,48 @@ test("MERGE_COMMIT_MESSAGE with nested custom fields", async () => {
   );
 });
 
+test("MERGE_COMMIT_MESSAGE supports {commits} placeholder", async () => {
+  // GIVEN
+  const pr = pullRequest();
+  pr.title = "This is the PR's title";
+  octokit.pulls.listCommits = async () => ({
+    status: 200,
+    data: [
+      {
+        sha: "610d49328d55c30646063bc9205f2cf2134db236",
+        commit: { message: "First commit" }
+      },
+      {
+        sha: "f53aa79dadd29aeb7dfd295a9ebab9c011f95af5",
+        commit: { message: "Second commit\n\nWith a body." }
+      }
+    ]
+  });
+
+  const config = createConfig({
+    MERGE_COMMIT_MESSAGE: "{pullRequest.title}\n\n{commits}"
+  });
+
+  // WHEN
+  expect(await merge({ config, octokit }, pr)).toEqual("merged");
+
+  // THEN
+  expect(octokit.pulls.merge).toHaveBeenCalledWith(
+    expect.objectContaining({
+      commit_title:
+        "This is the PR's title\n\n" +
+        "* First commit (610d493)\n" +
+        "* Second commit (f53aa79)\n" +
+        "  \n" +
+        "  With a body.",
+      commit_message: "",
+      pull_number: 1,
+      repo: "repository",
+      sha: "2c3b4d5"
+    })
+  );
+});
+
 test("MERGE_COMMIT_MESSAGE_REGEX can be used to cut PR body", async () => {
   // GIVEN
   const pr = pullRequest();
