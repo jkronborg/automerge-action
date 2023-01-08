@@ -1410,7 +1410,8 @@ async function getCommitMessage(mergeCommitMessage, pullRequest, octokit) {
       if (match === "{commits}") {
         return commitList;
       } else {
-        return resolvePath(pullRequest, prProp);
+        const value = resolvePath(pullRequest, prProp);
+        return value == null ? "" : value;
       }
     });
   }
