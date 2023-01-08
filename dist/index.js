@@ -561,11 +561,23 @@ function createConfig(env = {}) {
       .split(",")
       .map(s => s.trim());
     return {
-      required: arr.filter(s => !s.startsWith("!") && s.length > 0),
-      blocking: arr
-        .filter(s => s.startsWith("!"))
+      required: arr.filter(
+        s => !s.startsWith("!") && !s.startsWith("/") && s.length > 0
+      ),
+      requiredRegexes: arr
+        .filter(s => s.startsWith("/"))
         .map(s => s.substr(1).trim())
         .filter(s => s.length > 0)
+        .map(s => new RegExp(s)),
+      blocking: arr
+        .filter(s => s.startsWith("!") && s[1] !== "/")
+        .map(s => s.substr(1).trim())
+        .filter(s => s.length > 0),
+      blockingRegexes: arr
+        .filter(s => s.startsWith("!/"))
+        .map(s => s.substr(2).trim())
+        .filter(s => s.length > 0)
+        .map(s => new RegExp(s))
     };
   }
 
@@ -1197,9 +1209,14 @@ function skipPullRequest(context, pullRequest, approvalCount) {
 
   const labels = pullRequest.labels.map(label => label.name);
 
-  for (const label of pullRequest.labels) {
-    if (mergeLabels.blocking.includes(label.name)) {
-      logger.info("Skipping PR merge, blocking label present:", label.name);
+  for (const label of labels) {
+    if (mergeLabels.blocking.includes(label)) {
+      logger.info("Skipping PR merge, blocking label present:", label);
+      skip = true;
+    }
+
+    if (mergeLabels.blockingRegexes.some(regex => regex.test(label))) {
+      logger.info("Skipping PR merge, blocking label present:", label);
       skip = true;
     }
   }
@@ -1207,6 +1224,16 @@ function skipPullRequest(context, pullRequest, approvalCount) {
   for (const required of mergeLabels.required) {
     if (!labels.includes(required)) {
       logger.info("Skipping PR merge, required label missing:", required);
+      skip = true;
+    }
+  }
+
+  for (const requiredRegex of mergeLabels.requiredRegexes) {
+    if (!labels.some(label => requiredRegex.test(label))) {
+      logger.info(
+        "Skipping PR merge, required label regex did not match any labels:",
+        requiredRegex.toString()
+      );
       skip = true;
     }
   }
@@ -1513,9 +1540,14 @@ function skipPullRequest(context, pullRequest) {
 
   const labels = pullRequest.labels.map(label => label.name);
 
-  for (const label of pullRequest.labels) {
-    if (updateLabels.blocking.includes(label.name)) {
-      logger.info("Skipping PR update, blocking label present:", label.name);
+  for (const label of labels) {
+    if (updateLabels.blocking.includes(label)) {
+      logger.info("Skipping PR update, blocking label present:", label);
+      skip = true;
+    }
+
+    if (updateLabels.blockingRegexes.some(regex => regex.test(label))) {
+      logger.info("Skipping PR update, blocking label present:", label);
       skip = true;
     }
   }
@@ -1523,6 +1555,16 @@ function skipPullRequest(context, pullRequest) {
   for (const required of updateLabels.required) {
     if (!labels.includes(required)) {
       logger.info("Skipping PR update, required label missing:", required);
+      skip = true;
+    }
+  }
+
+  for (const requiredRegex of updateLabels.requiredRegexes) {
+    if (!labels.some(label => requiredRegex.test(label))) {
+      logger.info(
+        "Skipping PR update, required label regex did not match any labels:",
+        requiredRegex.toString()
+      );
       skip = true;
     }
   }

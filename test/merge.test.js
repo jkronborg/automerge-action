@@ -311,6 +311,62 @@ test("Base branch not listed then PR is skipped", async () => {
   expect(await merge({ config, octokit }, pr, 0)).toEqual("skipped");
 });
 
+test("Required label regex matches label, then PR is merged", async () => {
+  // GIVEN
+  const pr = pullRequest();
+  pr.labels = [{ name: "Passes QA" }];
+
+  const config = createConfig({
+    MERGE_METHOD: "merge",
+    MERGE_LABELS: "/^(Passes QA|No QA needed)$"
+  });
+
+  // WHEN
+  expect(await merge({ config, octokit }, pr, 0)).toEqual("merged");
+});
+
+test("Required label regex matches no labels, then PR is skipped", async () => {
+  // GIVEN
+  const pr = pullRequest();
+  pr.labels = [{ name: "a label" }];
+
+  const config = createConfig({
+    MERGE_METHOD: "merge",
+    MERGE_LABELS: "/^(Passes QA|No QA needed)$"
+  });
+
+  // WHEN
+  expect(await merge({ config, octokit }, pr, 0)).toEqual("skipped");
+});
+
+test("Blocking label regex matches no labels, then PR is merged", async () => {
+  // GIVEN
+  const pr = pullRequest();
+  pr.labels = [{ name: "a label" }];
+
+  const config = createConfig({
+    MERGE_METHOD: "merge",
+    MERGE_LABELS: "!/^(Needs QA|Fails QA)$"
+  });
+
+  // WHEN
+  expect(await merge({ config, octokit }, pr, 0)).toEqual("merged");
+});
+
+test("Blocking label regex matches label, then PR is skipped", async () => {
+  // GIVEN
+  const pr = pullRequest();
+  pr.labels = [{ name: "Needs QA" }];
+
+  const config = createConfig({
+    MERGE_METHOD: "merge",
+    MERGE_LABELS: "!/^(Needs QA|Fails QA)$"
+  });
+
+  // WHEN
+  expect(await merge({ config, octokit }, pr, 0)).toEqual("skipped");
+});
+
 test("Unmergeable pull request fails action with non-zero exit code", async () => {
   // GIVEN
   const pr = pullRequest();

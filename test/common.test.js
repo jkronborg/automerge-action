@@ -12,7 +12,9 @@ test("createConfig", () => {
     mergeFilterAuthor: "",
     mergeLabels: {
       blocking: [],
-      required: []
+      blockingRegexes: [],
+      required: [],
+      requiredRegexes: []
     },
     mergeMethodLabels: [],
     mergeMethodLabelRequired: false,
@@ -30,7 +32,9 @@ test("createConfig", () => {
     updateMethod: "merge",
     updateLabels: {
       blocking: ["block1", "block2"],
-      required: ["required1", "required2"]
+      blockingRegexes: [],
+      required: ["required1", "required2"],
+      requiredRegexes: []
     },
     updateRetries: 1,
     updateRetrySleep: 5000,
@@ -52,7 +56,9 @@ test("createConfig with arbitrary pull request (as string)", () => {
     mergeFilterAuthor: "",
     mergeLabels: {
       blocking: [],
-      required: []
+      blockingRegexes: [],
+      required: [],
+      requiredRegexes: []
     },
     mergeMethodLabels: [],
     mergeMethodLabelRequired: false,
@@ -70,7 +76,9 @@ test("createConfig with arbitrary pull request (as string)", () => {
     updateMethod: "merge",
     updateLabels: {
       blocking: ["block1", "block2"],
-      required: ["required1", "required2"]
+      blockingRegexes: [],
+      required: ["required1", "required2"],
+      requiredRegexes: []
     },
     updateRetries: 1,
     updateRetrySleep: 5000,
@@ -94,7 +102,9 @@ test("createConfig with arbitrary pull request (as number)", () => {
     mergeFilterAuthor: "",
     mergeLabels: {
       blocking: [],
-      required: []
+      blockingRegexes: [],
+      required: [],
+      requiredRegexes: []
     },
     mergeMethodLabels: [],
     mergeMethodLabelRequired: false,
@@ -112,7 +122,9 @@ test("createConfig with arbitrary pull request (as number)", () => {
     updateMethod: "merge",
     updateLabels: {
       blocking: ["block1", "block2"],
-      required: ["required1", "required2"]
+      blockingRegexes: [],
+      required: ["required1", "required2"],
+      requiredRegexes: []
     },
     updateRetries: 1,
     updateRetrySleep: 5000,
@@ -136,7 +148,9 @@ test("createConfig with arbitrary pull request in another repo", () => {
     mergeFilterAuthor: "",
     mergeLabels: {
       blocking: [],
-      required: []
+      blockingRegexes: [],
+      required: [],
+      requiredRegexes: []
     },
     mergeMethodLabels: [],
     mergeMethodLabelRequired: false,
@@ -154,7 +168,9 @@ test("createConfig with arbitrary pull request in another repo", () => {
     updateMethod: "merge",
     updateLabels: {
       blocking: ["block1", "block2"],
-      required: ["required1", "required2"]
+      blockingRegexes: [],
+      required: ["required1", "required2"],
+      requiredRegexes: []
     },
     updateRetries: 1,
     updateRetrySleep: 5000,

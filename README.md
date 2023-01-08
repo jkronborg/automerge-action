@@ -82,6 +82,9 @@ The following merge options are supported:
   skipped (until all labels are present). Labels prefixed with an exclamation
   mark (`!`) will block a pull request from being merged, when present.
 
+  Required regexes are supported using the `/` prefix, and blocking regexes are supported using
+  the `!/` prefix.
+
   For example, when `automerge,!wip,!work in progress` is given,
   any pull requests with the labels `wip` or `work in progress` and any pull
   requests _without_ the label `automerge` will not be merged.
