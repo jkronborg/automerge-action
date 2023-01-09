@@ -1524,7 +1524,7 @@ async function update(context, pullRequest) {
 
 function skipPullRequest(context, pullRequest) {
   const {
-    config: { updateLabels }
+    config: { updateLabels, baseBranches }
   } = context;
 
   let skip = false;
@@ -1568,6 +1568,18 @@ function skipPullRequest(context, pullRequest) {
       );
       skip = true;
     }
+  }
+
+  if (
+    baseBranches &&
+    baseBranches.length &&
+    !baseBranches.some(branch => branch === pullRequest.base.ref)
+  ) {
+    logger.info(
+      "Skipping PR update, base branch is not in the provided list:",
+      baseBranches
+    );
+    skip = true;
   }
 
   return skip;
